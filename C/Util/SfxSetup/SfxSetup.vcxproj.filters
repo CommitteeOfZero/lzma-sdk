@@ -51,6 +51,7 @@
     <ClInclude Include="Precomp.h">
       <Filter>Spec</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\7zAlloc.c">
@@ -108,5 +109,12 @@
       <Filter>Spec</Filter>
     </ClCompile>
     <ClCompile Include="SfxSetup.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="setup.ico" />
+    <Image Include="splash.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SfxSetup.rc" />
   </ItemGroup>
 </Project>

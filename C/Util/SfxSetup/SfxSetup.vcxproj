@@ -131,6 +131,7 @@
       <SubSystem>Windows</SubSystem>
       <OutputFile>.\Release\SfxSetup.exe</OutputFile>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -148,6 +149,7 @@
     <ClInclude Include="..\..\Lzma2Dec.h" />
     <ClInclude Include="..\..\LzmaDec.h" />
     <ClInclude Include="Precomp.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\7zAlloc.c" />
@@ -174,6 +176,13 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Precomp.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="SfxSetup.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="setup.ico" />
+    <Image Include="splash.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SfxSetup.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

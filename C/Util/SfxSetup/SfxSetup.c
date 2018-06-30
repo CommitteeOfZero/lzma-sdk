@@ -2,6 +2,7 @@
 2017-04-04 : Igor Pavlov : Public domain */
 
 #include "Precomp.h"
+#include "resource.h"
 
 #ifndef UNICODE
 #define UNICODE
@@ -227,6 +228,104 @@ static WRes RemoveDirWithSubItems(WCHAR *path)
   return res;
 }
 
+/* ------------------------------------------------
+   Splash Screen
+   shamelessly stolen from http://www.alsprogrammingresource.com/splash_screen_source.html
+   ------------------------------------------------ */
+
+const wchar_t SplashClassName[] = L"ngSplash";
+HBITMAP hSplashBMP;
+HDC hSplashDC;
+HDC hMemoryDC;
+LONG BitmapWidth, BitmapHeight;
+HWND hSplashWnd;
+
+LRESULT CALLBACK SplashWndProc(HWND    hWnd,
+    UINT    Msg,
+    WPARAM  wParam,
+    LPARAM  lParam)
+{
+    switch (Msg)
+    {
+    case WM_ERASEBKGND:
+        BitBlt((HDC)wParam, 0, 0, BitmapWidth, BitmapHeight, hMemoryDC, 0, 0, SRCCOPY);
+        break;
+    default:
+        return (DefWindowProc(hWnd, Msg, wParam, lParam));
+    }
+    return 0;
+}
+
+void CreateSplashScreen(HINSTANCE hInstance)
+{
+    WNDCLASSEX    splashwc;
+
+    splashwc.cbSize = sizeof(WNDCLASSEX);
+    splashwc.style = 0;
+    splashwc.lpfnWndProc = (WNDPROC)SplashWndProc;
+    splashwc.cbClsExtra = 0;
+    splashwc.cbWndExtra = 0;
+    splashwc.hInstance = hInstance;
+    splashwc.hIcon = NULL;
+    splashwc.hIconSm = NULL;
+    splashwc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    splashwc.hbrBackground = NULL;
+    splashwc.lpszMenuName = NULL;
+    splashwc.lpszClassName = SplashClassName;
+
+    if (!RegisterClassEx(&splashwc))
+    {
+        return;
+    }
+
+    RECT DesktopRect;
+    GetWindowRect(GetDesktopWindow(), &DesktopRect);
+
+    hSplashBMP = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_SPLASH));
+
+    if (!hSplashBMP)
+    {
+        return;
+    }
+
+    BITMAP Bitmap;
+    GetObject(hSplashBMP, sizeof(BITMAP), &Bitmap);
+    BitmapWidth = Bitmap.bmWidth;
+    BitmapHeight = Bitmap.bmHeight;
+
+
+    hSplashWnd = CreateWindowExW(
+        0,
+        SplashClassName,
+        L"Splash Screen",
+        WS_POPUP,
+        (DesktopRect.right - BitmapWidth) / 2,
+        (DesktopRect.bottom - BitmapHeight) / 2,
+        Bitmap.bmWidth,
+        Bitmap.bmHeight,
+        NULL,
+        NULL,
+        hInstance,
+        NULL);
+
+    if (!hSplashWnd)
+    {
+        return;
+    }
+
+    hSplashDC = GetDC(hSplashWnd);
+    hMemoryDC = CreateCompatibleDC(hSplashDC);
+    SelectObject(hMemoryDC, (HGDIOBJ)hSplashBMP);
+
+    ShowWindow(hSplashWnd, SW_SHOW);
+    UpdateWindow(hSplashWnd);
+}
+
+/* ------------------------------------------------
+   End Splash Screen
+   shamelessly stolen from http://www.alsprogrammingresource.com/splash_screen_source.html
+   ------------------------------------------------ */
+
 #ifdef _CONSOLE
 int MY_CDECL main()
 #else
@@ -257,12 +356,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   Bool useShellExecute = True;
   DWORD exitCode = 0;
 
+  CreateSplashScreen(hInstance);
+
   LoadSecurityDlls();
 
   #ifdef _CONSOLE
   SetConsoleCtrlHandler(HandlerRoutine, TRUE);
   #else
-  UNUSED_VAR(hInstance);
   UNUSED_VAR(hPrevInstance);
   UNUSED_VAR(lpCmdLine);
   UNUSED_VAR(nCmdShow);
@@ -593,7 +693,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       memset(&si, 0, sizeof(si));
       si.cb = sizeof(si);
       if (CreateProcessW(NULL, cmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi) == 0)
-        res = SZ_ERROR_FAIL;
+          res = SZ_ERROR_FAIL;
       else
       {
         CloseHandle(pi.hThread);
@@ -601,6 +701,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       }
     }
     
+    if (hSplashWnd) DestroyWindow(hSplashWnd);
+
     if (hProcess != 0)
     {
       WaitForSingleObject(hProcess, INFINITE);
